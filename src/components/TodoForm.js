@@ -1,14 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const initialFormValues = {
   title: "",
   description: "",
 };
 
-const TodoForm = ({ todoAdd }) => {
+const TodoForm = ({ todoAdd, todoEdit, todoUpdate ,setTodoEdit}) => {
   const [formValue, setFormValue] = useState(initialFormValues);
   const { title, description } = formValue;
   const [error, setError] = useState(null);
+  const [successMessage, seTsuccessMessage] = useState(null);
+
+  //hook effect
+  useEffect(() => {
+    if (todoEdit) {
+      setFormValue(todoEdit);
+    }else{
+      setFormValue(initialFormValues);
+    }
+  }, [todoEdit]);
 
   const handlerChange = (e) => {
     const changeFormValue = {
@@ -26,18 +36,40 @@ const TodoForm = ({ todoAdd }) => {
       return;
     }
 
-    if ( description.trim() === "") {
-        setError("the field description is required");
-        return;
-      }
-    todoAdd(formValue);
+    if (description.trim() === "") {
+      setError("the field description is required");
+      return;
+    }
+
+    if (todoEdit) {
+      todoUpdate(formValue);
+      seTsuccessMessage("todo update successfuly");
+      setTodoEdit(null);
+    } else {
+      todoAdd(formValue);
+      seTsuccessMessage("todo add successfuly");
+    }
+
     setError(null);
+    setTimeout(() => seTsuccessMessage(null), 2000);
     setFormValue(initialFormValues);
   };
 
+  const handleCancelTodo =(e) =>{
+    setTodoEdit(null);
+    setFormValue(initialFormValues);
+  }
+
+
   return (
     <div>
-      <h1>Add Todo </h1>
+      <h1>{todoEdit ? "Edit Todo" : "Add Todo"} </h1>
+      {todoEdit && (
+        <button className="btn btn-warning mb-2" onClick={(e)=>handleCancelTodo()}>
+         Cancel Edit
+        </button>
+      )}
+
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <label htmlFor="title" className="form-label">
@@ -68,7 +100,9 @@ const TodoForm = ({ todoAdd }) => {
           ></textarea>
         </div>
         <div className="mt-3">
-          <button className="btn btn-primary">Add todo</button>
+          <button className="btn btn-primary">
+            {todoEdit ? "Edit Todo" : "Add Todo"}
+          </button>
         </div>
       </form>
       <div>
@@ -77,6 +111,13 @@ const TodoForm = ({ todoAdd }) => {
             {error}
           </div>
         ) : null}
+      </div>
+      <div>
+        {successMessage && (
+          <div className="alert alert-success mt-2" role="alert">
+            {successMessage}
+          </div>
+        )}
       </div>
     </div>
   );
